@@ -45,38 +45,27 @@ async def create_qdrant_collection(
         print(f"Collection name: {collection_name or client.default_collection_name}")
         print(f"Vector size: {vector_size}")
 
+        success = False
         if recreate:
-            print(
-                f"Recreating collection '{collection_name or client.default_collection_name}'..."
-            )
             success = await client.recreate_collection(collection_name, vector_size)
-            if success:
-                print(
-                    f"Successfully recreated collection '{collection_name or client.default_collection_name}'"
-                )
-            else:
-                print("Collection recreation failed")
         else:
-            # Check if collection already exists
             exists = await client.collection_exists(collection_name)
             if exists:
-                print(
-                    f"Collection '{collection_name or client.default_collection_name}' already exists!"
-                )
+                print(f"Collection '{collection_name}' already exists!")
                 return True
 
-            # Create the collection
-            print(
-                f"Creating collection '{collection_name or client.default_collection_name}'..."
-            )
             success = await client.create_collection(collection_name, vector_size)
 
-            if success:
-                print(
-                    f"Successfully created collection '{collection_name or client.default_collection_name}'"
-                )
-            else:
-                print("Collection creation failed or collection already exists")
+        if success:
+            print(f"Successfully created collection '{collection_name}'")
+            qdrant_client = await client._get_qdrant_client()
+            await qdrant_client.create_payload_index(
+                collection_name,
+                field_name="site",
+                field_schema="keyword",
+            )
+        else:
+            print(f"Collection creation failed for '{collection_name}'")
 
         return success
 

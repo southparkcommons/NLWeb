@@ -2,9 +2,9 @@
 # This file contains settings specific to the NLWeb functionality
 
 # Comma-separated list of allowed sites, if you have multiple sites
-# in your store and want to restrict search to some sites. Defaults 
+# in your store and want to restrict search to some sites. Defaults
 # to all, for now.
-#sites: "yoursite"
+sites: "pando"
 
 # Data folders for JSON files and embeddings
 data_folders:
@@ -13,23 +13,23 @@ data_folders:
 
 # Enable or disable tool selection
 # When set to false, queries will skip tool selection and go directly to search
-tool_selection_enabled: true
+tool_selection_enabled: false
 
 # Enable or disable memory functionality
 # When set to false, the system will not analyze queries for memory requests
-memory_enabled: true
+memory_enabled: false
 
 # Enable or disable query analysis
 # When set to false, the system will skip item type detection, multi-item type detection, and query type detection
-analyze_query_enabled: true
+analyze_query_enabled: false
 
 # Enable or disable decontextualization
 # When set to false, the system will not attempt to decontextualize queries based on previous context
-decontextualize_enabled: true
+decontextualize_enabled: false
 
 # Enable or disable required info checking
 # When set to false, the system will not check if required information is present before processing queries
-required_info_enabled: true
+required_info_enabled: false
 
 # Chatbot formatting instructions
 chatbot_instructions:
