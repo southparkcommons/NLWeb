@@ -1,4 +1,4 @@
-preferred_endpoint: qdrant_url
+preferred_endpoint: user_qdrant
 
 endpoints:
   nlweb_west:
@@ -36,14 +36,25 @@ endpoints:
     # Specify the database type
     db_type: qdrant
 
-  # Option 2: Remote Qdrant server
-  qdrant_url:
-    # Connect to a Qdrant server at a specific URL
+  # Same Qdrant server, different collection for companies
+  company_qdrant:
+    # Connect to the same Qdrant server
     api_endpoint_env: QDRANT_URL
-    # Optional API key for authentication
+    # Same API key for authentication
     api_key_env: QDRANT_API_KEY
-    # Set the collection name to use
-    index_name: nlweb_collection
+    # Different collection name for companies
+    index_name: company_collection
+    # Specify the database type
+    db_type: qdrant
+
+  # Same Qdrant server, different collection for users
+  user_qdrant:
+    # Connect to the same Qdrant server
+    api_endpoint_env: QDRANT_URL
+    # Same API key for authentication
+    api_key_env: QDRANT_API_KEY
+    # Different collection name for users
+    index_name: user_collection
     # Specify the database type
     db_type: qdrant
 

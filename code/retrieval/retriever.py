@@ -193,10 +193,10 @@ class VectorDBClient:
         # Get default endpoint from config
         self.endpoint_name = endpoint_name or CONFIG.preferred_retrieval_endpoint
         
-        # In development mode, allow query param override
-        if CONFIG.is_development_mode() and self.query_params:
+        # Allow query param override for database endpoint selection
+        if self.query_params:
             self.endpoint_name = get_param(self.query_params, "db", str, self.endpoint_name)
-            logger.debug(f"Development mode: endpoint overridden to {self.endpoint_name}")
+            logger.debug(f"Database endpoint overridden to {self.endpoint_name}")
         
         # Validate endpoint exists in config
         if self.endpoint_name not in CONFIG.retrieval_endpoints:
