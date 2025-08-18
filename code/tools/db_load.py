@@ -168,8 +168,17 @@ async def fetch_url(url: str) -> Tuple[str, Optional[str]]:
     print(f"Fetching content from URL: {url}")
     
     try:
+        # Prepare headers
+        headers = {}
+        
+        # Add X-API-KEY header if environment variable is set
+        api_key = os.getenv('X_API_KEY')
+        if api_key:
+            headers['X-API-Key'] = api_key
+            print(f"Added X-API-Key header for URL: {url}")
+        
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers=headers) as response:
                 if response.status != 200:
                     raise ValueError(f"Failed to fetch URL {url}: HTTP {response.status}")
                 
