@@ -156,7 +156,11 @@ def get_item_name(item: Dict[str, Any]) -> str:
 
 def prepare_documents_from_json(url: str, json_data: str, site: str) -> Tuple[List[Dict[str, Any]], List[str]]:
     """
-    Prepare documents from URL and JSON data.
+    Prepare documents from URL and JSON data using configurable embedding approach.
+    
+    Uses configuration to determine embedding mode per document type:
+    - Single mode: Creates one embedding per document (legacy behavior)
+    - Multi mode: Creates multiple specialized embeddings per document for better search
     
     Args:
         url: URL for the item
@@ -167,6 +171,10 @@ def prepare_documents_from_json(url: str, json_data: str, site: str) -> Tuple[Li
         Tuple of (documents, texts_for_embedding)
     """
     try:
+        # Import dependencies
+        from tools.multi_embedding_generator import generate_document_embeddings, detect_item_type
+        from config.config import CONFIG
+        
         # Parse and trim the JSON
         json_obj = json.loads(json_data)
         trimmed_json = trim_schema_json(json_obj, site)
@@ -189,17 +197,40 @@ def prepare_documents_from_json(url: str, json_data: str, site: str) -> Tuple[Li
             item_url = url if i == 0 else f"{url}#{i}"
             item_json = json.dumps(item)
             
-            # Add document to batch
-            doc = {
-                "id": str(int64_hash(item_url)),
-                "schema_json": item_json,
-                "url": item_url,
-                "name": get_item_name(item),
-                "site": site
-            }
+            # Determine embedding mode based on configuration
+            item_type = detect_item_type(item)
+            embedding_mode = CONFIG.get_embedding_mode(item_type)
             
-            documents.append(doc)
-            texts.append(item_json)
+            if embedding_mode == "multi":
+                # Generate multiple specialized embeddings for this item
+                multi_embeddings = generate_document_embeddings(item, item_url, site)
+                
+                # Create a document for each specialized embedding
+                for emb_data in multi_embeddings:
+                    doc = {
+                        "id": emb_data["id"],
+                        "base_doc_id": emb_data["base_doc_id"],
+                        "embedding_type": emb_data["embedding_type"],
+                        "schema_json": item_json,
+                        "url": item_url,
+                        "name": get_item_name(item),
+                        "site": site
+                    }
+                    
+                    documents.append(doc)
+                    texts.append(emb_data["embedding_text"])
+            else:
+                # Single embedding mode (legacy behavior)
+                doc = {
+                    "id": str(int64_hash(item_url)),
+                    "schema_json": item_json,
+                    "url": item_url,
+                    "name": get_item_name(item),
+                    "site": site
+                }
+                
+                documents.append(doc)
+                texts.append(item_json)
         
         return documents, texts
     except Exception as e:
@@ -210,17 +241,38 @@ def documents_from_csv_line(line, site):
     """
     Parse a line with URL, JSON, and embedding into document objects.
     
+    Supports both legacy format (single embedding) and new multi-embedding format:
+    - Legacy: URL \t JSON \t embedding
+    - Multi: URL \t JSON \t embedding \t base_doc_id \t embedding_type
+    
     Args:
-        line: Tab-separated line with URL, JSON, and embedding
+        line: Tab-separated line with URL, JSON, and embedding data
         site: Site identifier
         
     Returns:
         List of document objects
     """
     try:
-        url, json_data, embedding_str = line.strip().split('\t')
+        parts = line.strip().split('\t')
+        
+        if len(parts) < 3:
+            print(f"Error: Line has insufficient columns ({len(parts)} < 3)")
+            return []
+        
+        url = parts[0]
+        json_data = parts[1]
+        embedding_str = parts[2]
+        
+        # Check if this is the new multi-embedding format
+        is_multi_format = len(parts) >= 5
+        base_doc_id = parts[3] if is_multi_format else None
+        embedding_type = parts[4] if is_multi_format else None
+        
+        # Parse embedding
         embedding_str = embedding_str.replace("[", "").replace("]", "") 
         embedding = [float(x) for x in embedding_str.split(',')]
+        
+        # Parse and trim JSON
         js = json.loads(json_data)
         js = trim_schema_json(js, site)
     except Exception as e:
@@ -240,19 +292,33 @@ def documents_from_csv_line(line, site):
         if item is None:
             continue
             
-        # No longer filtering by should_include_item - trimming already handles this
+        # URL handling
         item_url = url if i == 0 else f"{url}#{i}"
         name = get_item_name(item)
         
-        # Ensure no None values in the document
-        doc = {
-            "id": str(int64_hash(item_url)),
-            "embedding": embedding,
-            "schema_json": json.dumps(item),
-            "url": item_url or "",
-            "name": name or "Unnamed Item",
-            "site": site or "unknown"
-        }
+        # Create document based on format
+        if is_multi_format:
+            # New multi-embedding format
+            doc = {
+                "id": f"{base_doc_id}_{embedding_type}",  # Use the stored multi-embedding ID
+                "base_doc_id": base_doc_id,  # Link back to original document
+                "embedding_type": embedding_type,  # Type of this embedding
+                "embedding": embedding,
+                "schema_json": json.dumps(item),
+                "url": item_url or "",
+                "name": name or "Unnamed Item", 
+                "site": site or "unknown"
+            }
+        else:
+            # Legacy single embedding format
+            doc = {
+                "id": str(int64_hash(item_url)),
+                "embedding": embedding,
+                "schema_json": json.dumps(item),
+                "url": item_url or "",
+                "name": name or "Unnamed Item",
+                "site": site or "unknown"
+            }
         
         # Additional validation to ensure no None values
         for key, value in doc.items():

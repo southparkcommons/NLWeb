@@ -28,6 +28,11 @@ class LLMProviderConfig:
     api_version: Optional[str] = None
 
 @dataclass
+class EmbeddingModeConfig:
+    default: str = "single"
+    document_types: Dict[str, str] = field(default_factory=dict)
+
+@dataclass
 class EmbeddingProviderConfig:
     api_key: Optional[str] = None
     endpoint: Optional[str] = None
@@ -201,6 +206,13 @@ class AppConfig:
         
         self.preferred_embedding_provider: str = data["preferred_provider"]
         self.embedding_providers: Dict[str, EmbeddingProviderConfig] = {}
+        
+        # Load embedding mode configuration
+        embedding_mode_data = data.get("embedding_mode", {})
+        self.embedding_mode = EmbeddingModeConfig(
+            default=embedding_mode_data.get("default", "single"),
+            document_types=embedding_mode_data.get("document_types", {})
+        )
 
         for name, cfg in data.get("providers", {}).items():
             # Extract configuration values from the YAML
@@ -517,6 +529,18 @@ class AppConfig:
             return self.llm_endpoints[self.preferred_llm_endpoint]
             
         return None
+    
+    def get_embedding_mode(self, document_type: str) -> str:
+        """Get the embedding mode for a specific document type."""
+        if not hasattr(self, 'embedding_mode'):
+            return "single"  # Default fallback
+            
+        # Check if there's a specific mode for this document type
+        if document_type in self.embedding_mode.document_types:
+            return self.embedding_mode.document_types[document_type]
+            
+        # Fall back to default mode
+        return self.embedding_mode.default
 
 # Global singleton
 CONFIG = AppConfig()
