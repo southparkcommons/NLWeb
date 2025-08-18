@@ -1,4 +1,4 @@
-preferred_endpoint: user_qdrant
+write_endpoint: user_qdrant
 
 endpoints:
 
