@@ -1,5 +1,16 @@
 preferred_provider: openai
 
+# Embedding generation mode configuration
+embedding_mode:
+  # Default mode for documents (single or multi)
+  default: single
+  
+  # Per-document-type configuration
+  # Set to 'multi' to generate multiple specialized embeddings per document
+  # Set to 'single' to generate one embedding per document (legacy behavior)
+  document_types:
+    company: multi
+
 providers:
   openai:
     api_key_env: OPENAI_API_KEY

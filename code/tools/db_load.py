@@ -821,6 +821,9 @@ async def loadJsonToDB(file_path: str, site: str, batch_size: int = 100, delete_
             if json_only_format:
                 print("Detected JSON-only format. URLs will be extracted from within the JSON data.")
             
+            # Track both documents and their specialized embedding texts
+            all_embedding_texts = []
+            
             # Process each line to extract documents
             for line in lines:
                 try:
@@ -830,9 +833,10 @@ async def loadJsonToDB(file_path: str, site: str, batch_size: int = 100, delete_
                     if url is None or json_data is None:
                         continue
                     
-                    # Prepare documents
-                    documents, _ = prepare_documents_from_json(url, json_data, site)
+                    # Prepare documents with specialized embedding texts
+                    documents, embedding_texts = prepare_documents_from_json(url, json_data, site)
                     all_documents.extend(documents)
+                    all_embedding_texts.extend(embedding_texts)
                 except Exception as e:
                     print(f"Error processing line: {str(e)}")
                     continue
@@ -844,8 +848,13 @@ async def loadJsonToDB(file_path: str, site: str, batch_size: int = 100, delete_
             
             # Open file to write documents with embeddings
             with open(embeddings_path, 'w', encoding='utf-8') as embed_file:
-                # Extract texts for embedding
-                texts = [doc["schema_json"] for doc in all_documents]
+                # Use specialized embedding texts if available, otherwise fall back to schema_json
+                if all_embedding_texts and len(all_embedding_texts) == len(all_documents):
+                    texts = all_embedding_texts
+                    print(f"Using {len(texts)} specialized embedding texts from multi-embedding generator")
+                else:
+                    texts = [doc["schema_json"] for doc in all_documents]
+                    print(f"Falling back to schema_json for {len(texts)} documents (multi-embedding texts not available)")
                 
                 # Process in batches
                 total_documents = 0
@@ -877,8 +886,11 @@ async def loadJsonToDB(file_path: str, site: str, batch_size: int = 100, delete_
                                     # Ensure JSON has no newlines
                                     doc_json = doc['schema_json'].replace('\n', ' ')
                                     
-                                    # Write to embeddings file
-                                    embed_file.write(f"{doc['url']}\t{doc_json}\t{embedding_str}\n")
+                                    # Write to embeddings file in new multi-embedding format
+                                    # Format: URL \t JSON \t embedding \t base_doc_id \t embedding_type
+                                    base_doc_id = doc.get('base_doc_id', '')
+                                    embedding_type = doc.get('embedding_type', '')
+                                    embed_file.write(f"{doc['url']}\t{doc_json}\t{embedding_str}\t{base_doc_id}\t{embedding_type}\n")
                                     
                                     docs_with_embeddings.append(doc)
                             

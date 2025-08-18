@@ -323,9 +323,9 @@ class IncrementalCrawler:
                     else:
                         self.stats["schema_types"][schema_type] = 1
             
-            # Step 3: Prepare documents for database
+            # Step 3: Prepare documents for database with specialized embedding texts
             documents_to_upload = []
-            docs, _ = prepare_documents_from_json(final_url, schemas_str, self.db_name)
+            docs, embedding_texts = prepare_documents_from_json(final_url, schemas_str, self.db_name)
             documents_to_upload.extend(docs)
             
             # Step 4: Generate embeddings and upload
@@ -335,8 +335,13 @@ class IncrementalCrawler:
                 provider_config = CONFIG.get_embedding_provider(provider)
                 model = provider_config.model if provider_config else None
                 
-                # Extract texts for embedding
-                texts = [doc["schema_json"] for doc in documents_to_upload]
+                # Use specialized embedding texts if available, otherwise fall back to schema_json
+                if embedding_texts and len(embedding_texts) == len(documents_to_upload):
+                    texts = embedding_texts
+                    logger.debug(f"Using {len(texts)} specialized embedding texts from multi-embedding generator")
+                else:
+                    texts = [doc["schema_json"] for doc in documents_to_upload]
+                    logger.debug(f"Falling back to schema_json for {len(texts)} documents (multi-embedding texts not available)")
                 
                 # Generate embeddings
                 embeddings = await batch_get_embeddings(texts, provider, model)
