@@ -93,9 +93,60 @@ export class JsonRenderer {
 
     // Description
     const description = document.createElement('div');
-    // Use textContent for safe insertion of description
-    description.textContent = item.description || item.details || '';
     description.className = 'item-description';
+    
+    // Check if we have a details array (like ingredients)
+    if (item.details && Array.isArray(item.details)) {
+      // Create table for arrays (like ingredients)
+      const table = document.createElement('table');
+      table.style.cssText = 'width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9em;';
+      
+      // Create header
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      const headerCell = document.createElement('th');
+      headerCell.textContent = 'Ingredients';
+      headerCell.style.cssText = 'text-align: left; padding: 10px; background-color: #f0f0f0; border: 1px solid #ddd; font-weight: 600;';
+      headerRow.appendChild(headerCell);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      
+      // Create body with alternating row colors
+      const tbody = document.createElement('tbody');
+      item.details.forEach((ingredient, index) => {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.textContent = ingredient;
+        cell.style.cssText = `padding: 8px 10px; border: 1px solid #ddd; ${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f9f9f9;'}`;
+        row.appendChild(cell);
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      
+      description.appendChild(table);
+      
+      // Don't add the regular description if we already displayed details as a table
+      // This prevents duplicate display of ingredients
+    } else {
+      // Use regular description
+      const descContent = item.description || item.details || '';
+      if (Array.isArray(descContent)) {
+        // Fallback for arrays in description field
+        const list = document.createElement('ul');
+        list.style.cssText = 'margin: 8px 0; padding-left: 20px;';
+        descContent.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          li.style.cssText = 'margin: 4px 0;';
+          list.appendChild(li);
+        });
+        description.appendChild(list);
+      } else {
+        // Use textContent for safe insertion of description
+        description.textContent = descContent;
+      }
+    }
+    
     contentDiv.appendChild(description);
 
     // Add explanation if available
@@ -123,7 +174,7 @@ export class JsonRenderer {
     const titleLink = document.createElement('a');
     // FIX: Use sanitizeUrl instead of just escapeHtml for URLs
     titleLink.href = item.url ? this.sanitizeUrl(item.url) : '#';
-    const itemName = this.getItemName(item);
+    const itemName = this.htmlUnescape(this.getItemName(item));
     // Safe text insertion
     titleLink.textContent = itemName;
     titleLink.className = 'item-title-link';
@@ -196,8 +247,42 @@ export class JsonRenderer {
    * @returns {string|null} - The image URL or null
    */
   extractImage(schema_object) {
-    if (schema_object && schema_object.image) {
-      return this.extractImageInternal(schema_object.image);
+    // Handle array of schema objects
+    if (Array.isArray(schema_object)) {
+      // Look for ImageObject first
+      const imageObj = schema_object.find(obj => obj['@type'] === 'ImageObject');
+      if (imageObj && imageObj.url) {
+        return imageObj.url;
+      }
+      
+      // Look for Recipe object with image
+      const recipeObj = schema_object.find(obj => obj['@type'] === 'Recipe');
+      if (recipeObj && recipeObj.image) {
+        return this.extractImageInternal(recipeObj.image);
+      }
+      
+      // Look for Article object with thumbnailUrl
+      const articleObj = schema_object.find(obj => obj['@type'] === 'Article');
+      if (articleObj && articleObj.thumbnailUrl) {
+        return articleObj.thumbnailUrl;
+      }
+      
+      // Check first object for any image property
+      if (schema_object[0]) {
+        schema_object = schema_object[0];
+      }
+    }
+    
+    // Handle single schema object
+    if (schema_object) {
+      // Check for direct image property
+      if (schema_object.image) {
+        return this.extractImageInternal(schema_object.image);
+      }
+      // Check for thumbnailUrl property
+      if (schema_object.thumbnailUrl) {
+        return schema_object.thumbnailUrl;
+      }
     }
     return null;
   }

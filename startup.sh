@@ -9,10 +9,11 @@ ls -la
 
 # Install dependencies individually to avoid whole-installation failure
 echo "Installing dependencies..."
-pip install -r requirements.txt
+pip install -r python/requirements.txt
 
 # Start the application
 echo "Starting application..."
 
 #python app-file.py
-python -m webserver.WebServer
+#python -m webserver.WebServer
+python python/app-aiohttp.py

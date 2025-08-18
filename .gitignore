@@ -13,6 +13,7 @@ myenv
 venv
 .env
 data/
+.idea
 
 
 # User-specific files (MonoDevelop/Xamarin Studio)
@@ -334,6 +335,9 @@ paket-files/
 __pycache__/
 *.pyc
 
+# Pytest cache
+.pytest_cache/
+
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
@@ -438,5 +442,14 @@ static/.DS_Store
 
 \#README.md\#
 myenv/
+
+nlw2.zip
+
 /code/data/everydaysouthwest_com
 /data
+
+refactored/code/set_keys.sh
+old_code/set_keys.sh
+.vscode/settings.json
+/static/ta/ba
+static/.DS_Store

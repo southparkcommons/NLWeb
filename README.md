@@ -1,4 +1,4 @@
-# What is NLWeb ?
+# What is NLWeb?
 
 **NLWeb** simplifies the process of building conversational interfaces for websites. It natively supports MCP (Model Context Protocol), allowing the same natural language APIs to serve both humans and AI agents.
 
@@ -18,21 +18,21 @@ NLWeb has two primary components:
 
 2. **A straightforward implementation** that uses existing markup on sites with structured lists (e.g., products, recipes, attractions, reviews). Combined with UI widgets, this enables conversational interfaces to be added with ease. See [Life of a Chat Query](docs/life-of-a-chat-query.md) for more details.
 
-## NLWeb and MCP
+## NLWeb and MCP/A2A
 
-MCP (Model Context Protocol) is an emerging standard for enabling chatbots and AI assistants to interact with tools. Every NLWeb instance also acts as an MCP server and supports a core method, `ask`, which allows a natural language question to be posed to a website.
+MCP and A2A are emerging standards for enabling chatbots and AI assistants to interact with tools and each other. Every NLWeb instance also acts as an MCP server (and soon A2A) and supports a core method, `ask`, which allows a natural language question to be posed to a website.
 
 The response returned uses Schema.org — a widely adopted vocabulary for describing web data.
 
-**In short, MCP is to NLWeb what HTTP is to HTML.**
+**In short, NLWeb is to MCP/A2A what HTML is to HTTP.**
 
 ## Platform Compatibility
 
 NLWeb is platform-agnostic and supports:
 
 * **Operating systems**: Windows, macOS, Linux
-* **Vector stores**: Qdrant, Snowflake, Milvus, Azure AI Search
-* **LLMs**: OpenAI, DeepSeek, Gemini, Anthropic, Inception
+* **Vector stores**: [Qdrant](/docs/setup-qdrant.md), [Snowflake](docs/setup-snowflake.md), [Milvus](/docs/setup-milvus.md), [Azure AI Search](docs/setup-azure.md), [Elasticsearch](docs/setup-elasticsearch.md), [Postgres](docs/setup-postgres.md)
+* **LLMs**: OpenAI, DeepSeek, Gemini, Anthropic, Inception, [HuggingFace](docs/setup-huggingface.md)
 
 It is designed to be lightweight and scalable — capable of running on everything from data center clusters to laptops and, soon, mobile devices.
 
@@ -57,7 +57,7 @@ Most production deployments will:
 
 * [Hello world on your laptop](docs/nlweb-hello-world.md)
 * [Running it on Azure](docs/setup-azure.md)
-* [Running with Docker](docs/docker.md)
+* [Running with Docker](docs/setup-docker.md)
 * Running on GCP — *coming soon*
 * Running on AWS — *coming soon*
 
@@ -66,7 +66,7 @@ Most production deployments will:
 * [Life of a Chat Query](docs/life-of-a-chat-query.md)
 * [Modifying Prompts](docs/nlweb-prompts.md)
 * [Changing Control Flow](docs/nlweb-control-flow.md)
-* [Modifying the User Interface](docs/user-interface.md)
+* [Modifying the User Interface](docs/nlweb-user-interface.md)
 * [REST API](docs/nlweb-rest-api.md)
 * [Adding Memory](docs/nlweb-memory.md)
 * [Using the Check Connectivity Script to Test your Configuration](docs/nlweb-check-connectivity.md)
