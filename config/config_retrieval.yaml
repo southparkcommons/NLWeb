@@ -10,7 +10,7 @@ endpoints:
     db_type: azure_ai_search
 
   azure_ai_search:
-    enabled: true
+    enabled: false
     api_key_env: AZURE_VECTOR_SEARCH_API_KEY
     api_endpoint_env: AZURE_VECTOR_SEARCH_ENDPOINT
     index_name: embeddings1536
@@ -102,7 +102,7 @@ endpoints:
 
   # Option 1: Local file-based Qdrant storage
   qdrant_local:
-    enabled: true
+    enabled: false
     # Use local file-based storage with a specific path
     database_path: "../data/db"
     # Set the collection name to use
@@ -117,6 +117,7 @@ endpoints:
 
   # Same Qdrant server, different collection for companies
   company_qdrant:
+    enabled: true
     # Connect to the same Qdrant server
     api_endpoint_env: QDRANT_URL
     # Same API key for authentication
@@ -128,6 +129,7 @@ endpoints:
 
   # Same Qdrant server, different collection for users
   user_qdrant:
+    enabled: true
     # Connect to the same Qdrant server
     api_endpoint_env: QDRANT_URL
     # Same API key for authentication

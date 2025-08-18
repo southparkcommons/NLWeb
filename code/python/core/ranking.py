@@ -11,11 +11,11 @@ Backwards compatibility is not guaranteed at this time.
 import asyncio
 import json
 
-from llm.llm import ask_llm
-from prompts.prompts import fill_prompt, find_prompt
-from utils.logging_config_helper import get_configured_logger
-from utils.trim import trim_json
-from utils.utils import log
+from core.llm import ask_llm
+from core.prompts import fill_prompt, find_prompt
+from misc.logger.logging_config_helper import get_configured_logger
+from core.utils.trim import trim_json
+from core.utils.utils import log
 
 logger = get_configured_logger("ranking_engine")
 

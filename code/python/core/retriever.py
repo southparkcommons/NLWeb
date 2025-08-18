@@ -248,7 +248,8 @@ class VectorDBClient:
         self.db_type = None  # Will be set based on the primary endpoint
         
         # In development mode, check if query_params specifies a database endpoint
-        if CONFIG.is_development_mode() and self.query_params:
+        # if CONFIG.is_development_mode() and self.query_params:
+        if self.query_params:
             # Check for 'db' or 'retrieval_backend' parameter
             param_endpoint = self.query_params.get('db') or self.query_params.get('retrieval_backend')
             if param_endpoint:
