@@ -315,7 +315,7 @@ class VectorDBClient:
             logger.info(f"VectorDBClient initialized with {len(self.enabled_endpoints)} enabled endpoints: {list(self.enabled_endpoints.keys())}")
         
         # Validate write endpoint if configured
-        self.write_endpoint = CONFIG.write_endpoint
+        self.write_endpoint = endpoint_name or CONFIG.write_endpoint
         if self.write_endpoint:
             if self.write_endpoint not in CONFIG.retrieval_endpoints:
                 raise ValueError(f"Write endpoint '{self.write_endpoint}' not found in configuration")
