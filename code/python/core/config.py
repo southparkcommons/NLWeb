@@ -327,9 +327,9 @@ class AppConfig:
         for name, cfg in data.get("endpoints", {}).items():
             # Use the new method for all configuration values
             self.retrieval_endpoints[name] = RetrievalProviderConfig(
-                api_key=self._get_config_value(cfg.get("api_key_env")),
+                api_key=self._get_config_value(cfg.get("api_key_env")) or cfg.get("api_key"),
                 api_key_env=cfg.get("api_key_env"),  # Store the env var name
-                api_endpoint=self._get_config_value(cfg.get("api_endpoint_env")),
+                api_endpoint=self._get_config_value(cfg.get("api_endpoint_env")) or cfg.get("api_endpoint"),
                 api_endpoint_env=cfg.get("api_endpoint_env"),  # Store the env var name
                 database_path=self._get_config_value(cfg.get("database_path")),
                 index_name=self._get_config_value(cfg.get("index_name")),

@@ -98,8 +98,9 @@ class PgVectorClient:
         database = parsed_url.path[1:]  # remove leading slash
         query_params = parse_qs(parsed_url.query)
         
-        username = query_params.get('user', [None])[0]
-        password = query_params.get('password', [None])[0]
+        # Get username and password from URL components first, then fall back to query params
+        username = parsed_url.username or query_params.get('user', [None])[0]
+        password = parsed_url.password or query_params.get('password', [None])[0]
         
         return {
             'host': host,
