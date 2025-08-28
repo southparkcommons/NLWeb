@@ -71,9 +71,12 @@ async def index_json_handler(request: web.Request) -> web.Response:
             
             logger.info(f"JSON indexing completed: {total_documents} documents indexed for site {site}")
             
+            # Return success=False if no documents were indexed
+            success = total_documents > 0
+            
             return web.json_response({
-                "success": True,
-                "message": f"Successfully indexed {total_documents} documents",
+                "success": success,
+                "message": f"Successfully indexed {total_documents} documents" if success else f"Failed to index documents - 0 documents processed",
                 "details": {
                     "total_documents": total_documents,
                     "site": site,

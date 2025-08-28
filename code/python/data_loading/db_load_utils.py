@@ -190,8 +190,9 @@ def prepare_documents_from_json(url: str, json_data: str, site: str) -> Tuple[Li
             item_json = json.dumps(item)
             
             # Add document to batch
+            # Expect the item to already have an 'id' field from the original service
             doc = {
-                "id": str(int64_hash(item_url)),
+                "id": item.get("id", str(int64_hash(item_url))),  # Use existing id or fallback to generated one
                 "schema_json": item_json,
                 "url": item_url,
                 "name": get_item_name(item),
@@ -245,8 +246,9 @@ def documents_from_csv_line(line, site):
         name = get_item_name(item)
         
         # Ensure no None values in the document
+        # Expect the item to already have an 'id' field from the original service
         doc = {
-            "id": str(int64_hash(item_url)),
+            "id": item.get("id", str(int64_hash(item_url))),  # Use existing id or fallback to generated one
             "embedding": embedding,
             "schema_json": json.dumps(item),
             "url": item_url or "",

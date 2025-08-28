@@ -872,21 +872,24 @@ async def loadJsonToDB(file_path: str, site: str, batch_size: int = 100, delete_
                             
                             for j, embedding in enumerate(embeddings):
                                 if j < len(batch_docs):
-                                    doc = batch_docs[j].copy()  # Create a copy of the document
+                                    original_doc = batch_docs[j]
                                     
-                                    # Add embedding to document
-                                    doc["embedding"] = embedding
+                                    # Create embedding-only document for upload
+                                    embedding_doc = {
+                                        "id": original_doc["id"],
+                                        "embedding": embedding
+                                    }
                                     
                                     # Format embedding as string - ensure no newlines
                                     embedding_str = str(embedding).replace(' ', '').replace('\n', '')
                                     
                                     # Ensure JSON has no newlines
-                                    doc_json = doc['schema_json'].replace('\n', ' ')
+                                    doc_json = original_doc['schema_json'].replace('\n', ' ')
                                     
                                     # Write to embeddings file
-                                    embed_file.write(f"{doc['url']}\t{doc_json}\t{embedding_str}\n")
+                                    embed_file.write(f"{original_doc['url']}\t{doc_json}\t{embedding_str}\n")
                                     
-                                    docs_with_embeddings.append(doc)
+                                    docs_with_embeddings.append(embedding_doc)
                             
                             # Upload batch using the client directly
                             batch_idx = i // batch_size
@@ -1022,9 +1025,13 @@ async def loadUrlListToDB(file_path: str, site: str, batch_size: int = 100, dele
                                 docs_with_embeddings = []
                                 for k, embedding in enumerate(embeddings):
                                     if k < len(batch_docs):
-                                        doc = batch_docs[k].copy()
-                                        doc["embedding"] = embedding
-                                        docs_with_embeddings.append(doc)
+                                        original_doc = batch_docs[k]
+                                        # Create embedding-only document for upload
+                                        embedding_doc = {
+                                            "id": original_doc["id"],
+                                            "embedding": embedding
+                                        }
+                                        docs_with_embeddings.append(embedding_doc)
                                 
                                 # Upload batch directly with client
                                 batch_idx = j // batch_size
