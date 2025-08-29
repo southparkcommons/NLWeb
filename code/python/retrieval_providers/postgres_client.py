@@ -173,7 +173,8 @@ class PgVectorClient:
                         logger.info(f"Connecting to PostgreSQL at {self.host}:{self.port}/{self.dbname} with user {self.username}")
                         
                         # Set up async connection pool with reasonable defaults
-                        conninfo = f"host={self.host} port={self.port} dbname={self.dbname} user={self.username} password={self.password}"
+                        # Use the original connection string to preserve SSL and cloud provider parameters
+                        conninfo = self.api_endpoint
                         self._pool = AsyncConnectionPool(
                             conninfo=conninfo,
                             min_size=1,
