@@ -19,7 +19,10 @@ PUBLIC_ENDPOINTS: Set[str] = {
     '/static',
     '/html',
     # Allow public access to ask endpoint for now (can be changed)
-    '/ask'
+    '/ask',
+    # TODO: make this endpoint private
+    # Indexing endpoints
+    '/api/index/json'
 }
 
 

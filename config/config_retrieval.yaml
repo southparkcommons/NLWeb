@@ -1,4 +1,4 @@
-write_endpoint: user_qdrant
+write_endpoint: postgres
 
 endpoints:
 
@@ -90,11 +90,10 @@ endpoints:
     use_knn: false
 
   postgres:
-    enabled: false
-    # Database connection details (i.e. "postgresql://<HOST>:<PORT>/<DATABASE>?user=<USERNAME>&sslmode=require")
+    enabled: true
+    # Database connection details
+    # api_endpoint: "postgres://postgres:postgres@localhost:5432/spc"
     api_endpoint_env: POSTGRES_CONNECTION_STRING
-    # Password for authentication
-    api_key_env: POSTGRES_PASSWORD
     # Index name to search in
     index_name: documents
     # Specify the database type
@@ -117,7 +116,7 @@ endpoints:
 
   # Same Qdrant server, different collection for companies
   company_qdrant:
-    enabled: true
+    enabled: false
     # Connect to the same Qdrant server
     api_endpoint_env: QDRANT_URL
     # Same API key for authentication
@@ -129,7 +128,7 @@ endpoints:
 
   # Same Qdrant server, different collection for users
   user_qdrant:
-    enabled: true
+    enabled: false
     # Connect to the same Qdrant server
     api_endpoint_env: QDRANT_URL
     # Same API key for authentication

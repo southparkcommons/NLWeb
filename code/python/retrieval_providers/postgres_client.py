@@ -59,6 +59,14 @@ class PgVectorClient:
         self.database_path = self.endpoint_config.database_path
         self.default_collection_name = self.endpoint_config.index_name or "nlweb_collection"
 
+        logger.debug(f"Endpoint config - api_endpoint: {self.api_endpoint}")
+        logger.debug(f"Endpoint config - api_key: {self.api_key}")
+        
+        if not self.api_endpoint:
+            logger.error(f"api_endpoint is None/empty for endpoint '{self.endpoint_name}'")
+            logger.error(f"Full endpoint config: {self.endpoint_config}")
+            raise ValueError(f"No connection string found for PostgreSQL endpoint '{self.endpoint_name}'")
+
         self.pg_raw_config = self._get_config_from_postgres_connection_string(self.api_endpoint)
         
         self.host = self.pg_raw_config.get("host")
@@ -98,8 +106,9 @@ class PgVectorClient:
         database = parsed_url.path[1:]  # remove leading slash
         query_params = parse_qs(parsed_url.query)
         
-        username = query_params.get('user', [None])[0]
-        password = query_params.get('password', [None])[0]
+        # Get username and password from URL components first, then fall back to query params
+        username = parsed_url.username or query_params.get('user', [None])[0]
+        password = parsed_url.password or query_params.get('password', [None])[0]
         
         return {
             'host': host,
@@ -307,9 +316,9 @@ class PgVectorClient:
 
                     for idx, doc in enumerate(batch):
                         try:
-                            # Ensure required fields are present
-                            if not all(k in doc for k in ["id", "url", "name","schema_json", "site", "embedding"]):
-                                missing = [k for k in ["id", "url", "name","schema_json", "site", "embedding"] if k not in doc]
+                            # Ensure required fields are present (only id and embedding needed)
+                            if not all(k in doc for k in ["id", "embedding"]):
+                                missing = [k for k in ["id", "embedding"] if k not in doc]
                                 logger.warning(f"Skipping document with missing fields: {missing}")
                                 continue
 
@@ -329,16 +338,12 @@ class PgVectorClient:
                                 print(f"Invalid embedding example: {str(embedding[:5])}...")
                                 continue
                             
-                            # Add placeholder for this row
-                            placeholders.append("(%s, %s, %s, %s, %s, %s::vector)")
+                            # Add placeholder for this row (only id and embedding)
+                            placeholders.append("(%s, %s::vector)")
                             
-                            # Add values
+                            # Add values (only id and embedding)
                             values.extend([
                                 doc["id"],
-                                doc["url"], 
-                                doc["name"],
-                                doc["schema_json"],
-                                doc["site"],
                                 embedding  # This should be a list of floats
                             ])
                             
@@ -352,18 +357,16 @@ class PgVectorClient:
                         return 0
                     
                     # Build and execute the query
+                    # IMPORTANT: Only update embedding field, assuming document metadata already exists
+                    # Use UPDATE instead of INSERT since documents should already exist
                     query = f"""
-                        INSERT INTO {self.table_name} (id, url, name, schema_json, site, embedding)
-                        VALUES {', '.join(placeholders)}
-                        ON CONFLICT (id) DO UPDATE SET
-                            url = EXCLUDED.url,
-                            name = EXCLUDED.name,
-                            schema_json = EXCLUDED.schema_json,
-                            site = EXCLUDED.site,
-                            embedding = EXCLUDED.embedding
+                        UPDATE {self.table_name} 
+                        SET embedding = data.embedding
+                        FROM (VALUES {', '.join(placeholders)}) AS data(id, embedding)
+                        WHERE {self.table_name}.id = data.id::integer
                     """
                     
-                    print(f"Executing query with {len(values) // 6} rows")
+                    print(f"Executing query with {len(values) // 2} rows")
                     try:
                         await cur.execute(query, values)
                         count = cur.rowcount
