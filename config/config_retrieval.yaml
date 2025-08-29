@@ -93,7 +93,7 @@ endpoints:
     enabled: true
     # Database connection details
     # api_endpoint: "postgres://postgres:postgres@localhost:5432/spc"
-    api_endpoint: POSTGRES_CONNECTION_STRING
+    api_endpoint_env: POSTGRES_CONNECTION_STRING
     # Index name to search in
     index_name: documents
     # Specify the database type
